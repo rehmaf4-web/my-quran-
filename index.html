@@ -308,24 +308,7 @@ async function renderJ(jn){
 function renderAsma(){document.getElementById('content').innerHTML=`<div class="pt">أسماء الله الحسنى</div><div class="ps">The 99 Beautiful Names of Allah</div><div class="ng">${ASMA.map(n=>`<div class="nc"><div class="nn">${n[0]}</div><div class="nar">${n[1]}</div><div class="ntr">${n[2]}</div><div class="nm">${n[3]}</div></div>`).join('')}</div>`;}
 function renderDuas(){document.getElementById('content').innerHTML=`<div class="pt">الأدعية اليومية</div><div class="ps">Essential Daily Duas</div>${DUAS.map(d=>`<div class="dc"><div class="dt">${d.title}</div><div class="dar">${d.arabic}</div><div class="dtr">${d.transliteration}</div><div class="den">${d.translation}</div></div>`).join('')}`;}
 
-  buildList();render(1);
-<h3>Play Surah Audio</h3>
-<select id="surahSelect">
-  <option value="1">Al-Fatiha</option>
-  <option value="2">Al-Baqarah</option>
-  <option value="3">Aal-E-Imran</option>
-</select>
-<br><br>
-<button onclick="playAudio()">▶️ Play</button>
-<br><br>
-<audio id="audioPlayer" controls></audio>
-<script>
-function playAudio() {
-  var surahNumber = document.getElementById("surahSelect").value;
-  var audioUrl = "https://cdn.islamic.network/quran/audio/128/ar.yasseraldosari/" + surahNumber + ".mp3";
-  
-  var player = document.getElementById("audioPlayer");
-  player.src = audioUrl;
-  player.play();
-}
+buildList();renderS(1);
 </script>
+</body>
+</html>
