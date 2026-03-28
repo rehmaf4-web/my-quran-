@@ -312,3 +312,12 @@ buildList();renderS(1);
 </script>
 </body>
 </html> 
+<script>
+function playAudio() {
+  let surahNumber = document.getElementById("surahSelect").value;
+  let audioUrl = "https://cdn.islamic.network/quran/audio/128/ar.yasseraldosari/" + surahNumber + ".mp3";
+  let player = document.getElementById("audioPlayer");
+  player.src = audioUrl;
+  player.play();
+}
+</script>
