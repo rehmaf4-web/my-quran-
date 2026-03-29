@@ -1,9 +1,9 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Al-Noor — The Quran</title>
+<title>Allah's Rehma — The Quran</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
 <style>
@@ -78,14 +78,40 @@
   .juz-hdr-t{font-size:.95rem;color:var(--accent);font-weight:600;}
   .juz-hdr-s{font-size:.75rem;color:var(--text2);}
 
-  .ac{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:1.5rem 1.5rem 1.3rem;margin-bottom:.9rem;position:relative;transition:box-shadow .2s;}
+  /* Ayah card */
+  .ac{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:1.5rem 1.5rem 1.3rem;margin-bottom:.9rem;position:relative;transition:box-shadow .2s,border-color .3s;}
   .ac:hover{box-shadow:var(--shadow);}
+  .ac.playing{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),var(--shadow);}
   .an{position:absolute;top:1rem;left:1rem;width:28px;height:28px;background:var(--bg3);border:1px solid var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.66rem;color:var(--accent);}
   .aref{position:absolute;top:1rem;right:1rem;font-size:.66rem;color:var(--text2);letter-spacing:.04em;}
   .aa{font-family:'Amiri',serif;font-size:1.8rem;line-height:2.1;text-align:right;direction:rtl;color:var(--arabic);padding-top:.2rem;}
   .div{width:34px;height:1px;background:var(--border);margin:.75rem 0;}
   .at{font-style:italic;font-size:.88rem;color:var(--text2);line-height:1.7;border-left:2px solid var(--border);padding-left:.7rem;}
   .atr{font-size:.95rem;line-height:1.8;color:var(--text);margin-top:.65rem;}
+
+  /* Audio bar */
+  .audio-bar{display:flex;align-items:center;gap:.55rem;margin-top:1rem;padding-top:.75rem;border-top:1px solid var(--border);}
+  .play-btn{width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--nav-text);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;transition:transform .15s,opacity .2s;}
+  .play-btn:hover{transform:scale(1.08);}
+  .play-btn:disabled{opacity:.45;cursor:not-allowed;}
+  .audio-progress-wrap{flex:1;height:4px;background:var(--border);border-radius:2px;cursor:pointer;overflow:hidden;}
+  .audio-progress-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .2s linear;}
+  .audio-time{font-size:.65rem;color:var(--text2);min-width:50px;text-align:right;}
+  .audio-status{font-size:.65rem;color:var(--accent);letter-spacing:.06em;}
+
+  /* Global audio player bar at bottom */
+  #global-player{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);padding:.6rem 1.2rem;display:none;align-items:center;gap:.8rem;z-index:300;backdrop-filter:blur(16px);}
+  #global-player.visible{display:flex;}
+  .gp-info{flex:1;min-width:0;}
+  .gp-title{font-size:.78rem;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .gp-sub{font-size:.65rem;color:var(--text2);}
+  .gp-controls{display:flex;gap:.4rem;align-items:center;}
+  .gp-btn{background:none;border:1px solid var(--border);color:var(--text2);width:30px;height:30px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem;transition:all .15s;}
+  .gp-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .gp-btn.primary{background:var(--accent);color:var(--nav-text);border-color:var(--accent);}
+  .gp-progress-wrap{width:140px;height:4px;background:var(--border);border-radius:2px;cursor:pointer;}
+  .gp-progress-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .1s linear;}
+  .gp-time{font-size:.65rem;color:var(--text2);white-space:nowrap;}
 
   .loading{text-align:center;padding:4rem 2rem;color:var(--text2);font-size:1.05rem;}
   .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .75s linear infinite;margin:0 auto 1rem;}
@@ -115,10 +141,15 @@
     .mtgl{display:flex!important;}
     aside.open{display:flex;position:fixed;inset:54px 0 0;z-index:200;width:100%;}
     .content{padding:1.2rem 1rem;}
+    .gp-progress-wrap{width:80px;}
   }
   ::-webkit-scrollbar{width:5px;}
   ::-webkit-scrollbar-track{background:var(--bg2);}
   ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+  /* pulse animation for playing state */
+  @keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(123,156,204,0.4);}70%{box-shadow:0 0 0 6px rgba(123,156,204,0);}100%{box-shadow:0 0 0 0 rgba(123,156,204,0);}}
+  .play-btn.is-playing{animation:pulse-ring 1.5s ease-out infinite;}
 </style>
 </head>
 <body>
@@ -126,7 +157,7 @@
   <header>
     <div style="display:flex;align-items:center;gap:.8rem">
       <button class="mtgl" onclick="toggleMenu()">☰</button>
-      <div class="logo">النور <span>Al-Noor · The Light</span></div>
+      <div class="logo">رَحْمَة <span>Allah's Rehma · His Mercy</span></div>
     </div>
     <nav>
       <button class="active" onclick="showSection('quran',this)">Quran</button>
@@ -153,6 +184,27 @@
     <div class="content" id="content"><div class="loading"><div class="spinner"></div>Loading...</div></div>
   </main>
 </div>
+
+<!-- Global bottom audio player -->
+<div id="global-player">
+  <div class="gp-info">
+    <div class="gp-title" id="gp-title">—</div>
+    <div class="gp-sub" id="gp-sub">Mishary Rashid Alafasy</div>
+  </div>
+  <div class="gp-controls">
+    <button class="gp-btn" title="Previous ayah" onclick="audioNav(-1)">&#9664;</button>
+    <button class="gp-btn primary" id="gp-playpause" onclick="toggleGlobalPlay()">&#9646;&#9646;</button>
+    <button class="gp-btn" title="Next ayah" onclick="audioNav(1)">&#9654;</button>
+  </div>
+  <div class="gp-progress-wrap" onclick="seekGlobal(event)">
+    <div class="gp-progress-fill" id="gp-prog"></div>
+  </div>
+  <div class="gp-time" id="gp-time">0:00 / 0:00</div>
+  <button class="gp-btn" title="Stop" onclick="stopAudio()" style="font-size:.7rem">✕</button>
+</div>
+
+<audio id="main-audio"></audio>
+
 <script>
 const SM=[
   [1,"Al-Fatiha","الفاتحة","The Opening","Meccan",7,1],[2,"Al-Baqarah","البقرة","The Cow","Medinan",286,1],
@@ -214,7 +266,6 @@ const SM=[
   [113,"Al-Falaq","الفلق","The Daybreak","Meccan",5,30],[114,"An-Nas","الناس","Mankind","Meccan",6,30]
 ];
 
-// [juzNum, label, subtitle, startSurah, endSurah]
 const JD=[
   [1,"Juz 1","Al-Fatiha — Al-Baqarah",1,2],[2,"Juz 2","Al-Baqarah (cont.)",2,2],
   [3,"Juz 3","Al-Baqarah — Ali 'Imran",2,3],[4,"Juz 4","Ali 'Imran — An-Nisa",3,4],
@@ -252,7 +303,176 @@ const DUAS=[
 
 let sec='quran',curS=1,curJ=1,tab='surah',cache={},filtered=[...SM];
 
-function setTheme(c,id){document.body.className=c?'theme-'+c:'';document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');}
+// ── Audio state ──────────────────────────────────────────────
+const audio = document.getElementById('main-audio');
+let audioState = {
+  surahNum: null,   // which surah is queued
+  ayahIndex: null,  // 0-based index in that surah's ayahs
+  playing: false,
+  ayahCount: 0
+};
+
+// Fetch per-ayah audio URLs from AlQuran Cloud API
+// Tries Mishary Rashid Alafasy first, falls back to Alafasy
+const audioCache = {};
+
+async function fetchAudioUrls(surahNum) {
+  if (audioCache[surahNum]) return audioCache[surahNum];
+  const editions = ['ar.yasserdossari', 'ar.alafasy'];
+  for (const edition of editions) {
+    try {
+      const res = await fetch(`https://api.alquran.cloud/v1/surah/${surahNum}/${edition}`);
+      const data = await res.json();
+      if (data.data && data.data.ayahs && data.data.ayahs[0].audio) {
+        audioCache[surahNum] = data.data.ayahs.map(a => a.audio);
+        return audioCache[surahNum];
+      }
+    } catch(e) {}
+  }
+  return null;
+}
+
+async function playAyah(surahNum, ayahIdx, ayahCount) {
+  audio.pause();
+  clearHighlight();
+
+  audioState.surahNum = surahNum;
+  audioState.ayahIndex = ayahIdx;
+  audioState.ayahCount = ayahCount;
+  audioState.playing = true;
+
+  updateGlobalPlayer();
+  highlightAyah(ayahIdx);
+  updateInlineButtons();
+
+  const urls = await fetchAudioUrls(surahNum);
+  if (!urls || !urls[ayahIdx]) return;
+
+  // Only play if this ayah is still the active one
+  if (audioState.surahNum !== surahNum || audioState.ayahIndex !== ayahIdx) return;
+
+  audio.src = urls[ayahIdx];
+  audio.load();
+  audio.play().catch(e => console.warn('Audio play failed:', e));
+
+  updateGlobalPlayer();
+  updateInlineButtons();
+}
+
+function toggleGlobalPlay() {
+  if (!audioState.surahNum) return;
+  if (audio.paused) {
+    audio.play();
+    audioState.playing = true;
+  } else {
+    audio.pause();
+    audioState.playing = false;
+  }
+  updateGlobalPlayer();
+  updateInlineButtons();
+}
+
+function stopAudio() {
+  audio.pause();
+  audio.src = '';
+  audioState.playing = false;
+  audioState.surahNum = null;
+  clearHighlight();
+  updateInlineButtons();
+  document.getElementById('global-player').classList.remove('visible');
+}
+
+function audioNav(dir) {
+  if (!audioState.surahNum) return;
+  const next = audioState.ayahIndex + dir;
+  if (next < 0 || next >= audioState.ayahCount) return;
+  playAyah(audioState.surahNum, next, audioState.ayahCount);
+  // scroll the card into view
+  const card = document.querySelector(`.ac[data-ayah="${next}"]`);
+  if (card) card.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function clearHighlight() {
+  document.querySelectorAll('.ac.playing').forEach(c => c.classList.remove('playing'));
+}
+
+function highlightAyah(idx) {
+  clearHighlight();
+  const card = document.querySelector(`.ac[data-ayah="${idx}"]`);
+  if (card) card.classList.add('playing');
+}
+
+function updateInlineButtons() {
+  document.querySelectorAll('.play-btn').forEach(btn => {
+    const idx = parseInt(btn.dataset.ayah);
+    const sn  = parseInt(btn.dataset.surah);
+    const isThis = sn === audioState.surahNum && idx === audioState.ayahIndex;
+    btn.classList.toggle('is-playing', isThis && audioState.playing);
+    btn.innerHTML = (isThis && !audio.paused) ? '&#9646;&#9646;' : '&#9654;';
+  });
+}
+
+function updateGlobalPlayer() {
+  const gp = document.getElementById('global-player');
+  if (!audioState.surahNum) { gp.classList.remove('visible'); return; }
+  gp.classList.add('visible');
+  const m = SM[audioState.surahNum - 1];
+  document.getElementById('gp-title').textContent = `${m[1]} · Ayah ${audioState.ayahIndex + 1}`;
+  document.getElementById('gp-playpause').innerHTML = audio.paused ? '&#9654;' : '&#9646;&#9646;';
+}
+
+function seekGlobal(e) {
+  if (!audio.duration) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const ratio = (e.clientX - rect.left) / rect.width;
+  audio.currentTime = ratio * audio.duration;
+}
+
+function fmtTime(s) {
+  if (!s || isNaN(s)) return '0:00';
+  return Math.floor(s/60)+':'+(Math.floor(s%60)+'').padStart(2,'0');
+}
+
+audio.addEventListener('timeupdate', () => {
+  if (!audio.duration) return;
+  const pct = (audio.currentTime / audio.duration * 100).toFixed(1);
+  document.getElementById('gp-prog').style.width = pct + '%';
+  document.getElementById('gp-time').textContent = fmtTime(audio.currentTime)+' / '+fmtTime(audio.duration);
+  // inline progress
+  const bar = document.querySelector(`.audio-progress-fill[data-ayah="${audioState.ayahIndex}"]`);
+  if (bar) bar.style.width = pct + '%';
+  const timeEl = document.querySelector(`.audio-time[data-ayah="${audioState.ayahIndex}"]`);
+  if (timeEl) timeEl.textContent = fmtTime(audio.currentTime)+' / '+fmtTime(audio.duration);
+});
+
+audio.addEventListener('ended', () => {
+  // auto-advance
+  const next = audioState.ayahIndex + 1;
+  if (next < audioState.ayahCount) {
+    setTimeout(() => {
+      playAyah(audioState.surahNum, next, audioState.ayahCount);
+      const card = document.querySelector(`.ac[data-ayah="${next}"]`);
+      if (card) card.scrollIntoView({behavior:'smooth', block:'center'});
+    }, 400);
+  } else {
+    audioState.playing = false;
+    clearHighlight();
+    updateInlineButtons();
+    updateGlobalPlayer();
+  }
+});
+
+audio.addEventListener('play', () => {
+  document.getElementById('gp-playpause').innerHTML = '&#9646;&#9646;';
+  updateInlineButtons();
+});
+audio.addEventListener('pause', () => {
+  document.getElementById('gp-playpause').innerHTML = '&#9654;';
+  updateInlineButtons();
+});
+
+// ── Existing helpers ─────────────────────────────────────────
+function setTheme(c,id){document.body.className=c?'theme-'+c:'';document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));document.querySelector('.'+id).classList.add('active');}
 function toggleMenu(){document.getElementById('sidebar').classList.toggle('open');}
 function showSection(s,btn){sec=s;document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');if(s==='quran'){tab==='surah'?renderS(curS):renderJ(curJ);}else if(s==='asma')renderAsma();else renderDuas();}
 function switchTab(t){tab=t;document.getElementById('tab-s').classList.toggle('active',t==='surah');document.getElementById('tab-j').classList.toggle('active',t==='juz');document.getElementById('srch').value='';filtered=[...SM];buildList();}
@@ -277,6 +497,39 @@ async function fetchS(n){
   cache[n]={ar:ar.data,en:en.data,tr:tr.data};return cache[n];
 }
 
+function inlinePlayBtn(surahNum, ayahIdx) {
+  return `
+    <div class="audio-bar">
+      <button class="play-btn" data-ayah="${ayahIdx}" data-surah="${surahNum}" 
+        onclick="handlePlayBtn(${surahNum},${ayahIdx},this)">&#9654;</button>
+      <div class="audio-progress-wrap" onclick="seekInline(event,${ayahIdx})">
+        <div class="audio-progress-fill" data-ayah="${ayahIdx}" style="width:0%"></div>
+      </div>
+      <div class="audio-time" data-ayah="${ayahIdx}">0:00</div>
+      <span class="audio-status" id="ast-${ayahIdx}"></span>
+    </div>`;
+}
+
+function handlePlayBtn(surahNum, ayahIdx, btn) {
+  const isThis = audioState.surahNum === surahNum && audioState.ayahIndex === ayahIdx;
+  if (isThis && !audio.paused) {
+    audio.pause();
+    audioState.playing = false;
+    updateInlineButtons();
+    updateGlobalPlayer();
+  } else {
+    const count = SM[surahNum-1][5];
+    playAyah(surahNum, ayahIdx, count); // async, fire and forget
+  }
+}
+
+function seekInline(e, ayahIdx) {
+  if (audioState.ayahIndex !== ayahIdx || !audio.duration) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const ratio = (e.clientX - rect.left) / rect.width;
+  audio.currentTime = ratio * audio.duration;
+}
+
 async function renderS(n){
   const c=document.getElementById('content'),m=SM[n-1];
   c.innerHTML=`<div class="loading"><div class="spinner"></div>Loading ${m[1]}...</div>`;
@@ -284,8 +537,19 @@ async function renderS(n){
     const d=await fetchS(n);
     const bism=n!==1&&n!==9;
     let h=`<div class="sh"><div class="sh-ar">${m[2]}</div><div class="sh-en">${m[1]} · ${m[3]}</div><div class="sh-d">${m[4]} · ${m[5]} Ayahs · Juz ${m[6]}</div></div>${bism?'<div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>':''}<div class="orn">— ✦ —</div>`;
-    d.ar.ayahs.forEach((ay,i)=>{h+=`<div class="ac"><div class="an">${ay.numberInSurah}</div><div class="aa">${ay.text}</div><div class="div"></div><div class="at">${d.tr.ayahs[i]?.text||''}</div><div class="atr">${d.en.ayahs[i]?.text||''}</div></div>`;});
+    d.ar.ayahs.forEach((ay,i)=>{
+      h+=`<div class="ac" data-ayah="${i}">
+        <div class="an">${ay.numberInSurah}</div>
+        <div class="aa">${ay.text}</div>
+        <div class="div"></div>
+        <div class="at">${d.tr.ayahs[i]?.text||''}</div>
+        <div class="atr">${d.en.ayahs[i]?.text||''}</div>
+        ${inlinePlayBtn(n, i)}
+      </div>`;
+    });
     c.innerHTML=h;c.scrollTo(0,0);
+    // restore highlight if same surah is still playing
+    if(audioState.surahNum===n) { highlightAyah(audioState.ayahIndex); updateInlineButtons(); }
   }catch(e){c.innerHTML=`<div class="loading"><p style="color:var(--accent)">Unable to load — please check your internet connection.</p></div>`;}
 }
 
@@ -299,7 +563,17 @@ async function renderJ(jn){
     all.forEach((d,i)=>{
       const sn=j[3]+i,m=SM[sn-1],bism=sn!==1&&sn!==9;
       h+=`<div class="juz-hdr"><div class="juz-badge">${sn}</div><div><div class="juz-hdr-t">${m[1]} · ${m[2]}</div><div class="juz-hdr-s">${m[3]} · ${m[4]} · ${m[5]} ayahs</div></div></div>${bism?'<div class="bismillah" style="font-size:1.5rem;margin:.8rem 0">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>':''}`;
-      d.ar.ayahs.forEach((ay,i2)=>{h+=`<div class="ac"><div class="an">${ay.numberInSurah}</div><div class="aref">${m[1]}</div><div class="aa">${ay.text}</div><div class="div"></div><div class="at">${d.tr.ayahs[i2]?.text||''}</div><div class="atr">${d.en.ayahs[i2]?.text||''}</div></div>`;});
+      d.ar.ayahs.forEach((ay,i2)=>{
+        h+=`<div class="ac" data-ayah="${i2}">
+          <div class="an">${ay.numberInSurah}</div>
+          <div class="aref">${m[1]}</div>
+          <div class="aa">${ay.text}</div>
+          <div class="div"></div>
+          <div class="at">${d.tr.ayahs[i2]?.text||''}</div>
+          <div class="atr">${d.en.ayahs[i2]?.text||''}</div>
+          ${inlinePlayBtn(sn, i2)}
+        </div>`;
+      });
     });
     c.innerHTML=h;c.scrollTo(0,0);
   }catch(e){c.innerHTML=`<div class="loading"><p style="color:var(--accent)">Unable to load — please check your internet connection.</p></div>`;}
